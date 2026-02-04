@@ -142,7 +142,7 @@ Categories to train on:
 
 ## Credits
 
-Built by David & Milo 🦊
+Built by David 
 
 ---
 
