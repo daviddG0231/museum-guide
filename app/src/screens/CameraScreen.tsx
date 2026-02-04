@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -20,6 +20,7 @@ import { ChatInput } from '../components/ChatInput';
 import { useDetection } from '../hooks/useDetection';
 import { useNarration } from '../hooks/useNarration';
 import { useAppStore } from '../store/appStore';
+import { DetectionService } from '../services/DetectionService';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -30,16 +31,42 @@ export function CameraScreen() {
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [isListening, setIsListening] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
   
   const { isDetecting, detectedArtifact, boundingBox } = useDetection(cameraRef);
-  const { isPlaying, currentNarration, progress, togglePlayback, requestMore } = useNarration();
+  const { isPlaying, isLoading, currentNarration, progress, startNarration, togglePlayback, requestMore } = useNarration();
   const { addToHistory } = useAppStore();
 
-  // Handle text/voice query
-  const handleQuery = useCallback((text: string) => {
-    console.log('User query:', text);
-    // TODO: Send to LLM for contextual answer about current artifact
+  // Initialize and check demo mode
+  useEffect(() => {
+    DetectionService.initialize().then(() => {
+      setIsDemoMode(DetectionService.isDemoMode());
+    });
   }, []);
+
+  // Auto-start narration when artifact is detected
+  useEffect(() => {
+    if (detectedArtifact && !isLoading) {
+      startNarration(detectedArtifact);
+      addToHistory(
+        detectedArtifact.id,
+        detectedArtifact.name,
+        detectedArtifact.category,
+        detectedArtifact.dynasty
+      );
+    }
+  }, [detectedArtifact?.id]);
+
+  // Handle text/voice query
+  const handleQuery = useCallback(async (text: string) => {
+    console.log('User query:', text);
+    // Search for artifact by name
+    const artifact = await DetectionService.searchByQuery(text);
+    if (artifact) {
+      startNarration(artifact);
+      addToHistory(artifact.id, artifact.name, artifact.category, artifact.dynasty);
+    }
+  }, [startNarration, addToHistory]);
 
   const handleVoiceStart = useCallback(() => {
     setIsListening(true);
@@ -127,7 +154,9 @@ export function CameraScreen() {
         
         <View style={styles.titleContainer}>
           <Text style={styles.titleText}>Museum Guide</Text>
-          <Text style={styles.subtitleText}>Grand Egyptian Museum</Text>
+          <Text style={styles.subtitleText}>
+            {isDemoMode ? '🎭 Demo Mode' : 'Grand Egyptian Museum'}
+          </Text>
         </View>
 
         <TouchableOpacity
@@ -161,7 +190,7 @@ export function CameraScreen() {
           placeholder={
             detectedArtifact
               ? `Ask about ${detectedArtifact.name}...`
-              : "Ask about any artifact..."
+              : "Type artifact name or ask a question..."
           }
         />
       </View>

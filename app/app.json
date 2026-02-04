@@ -1,0 +1,51 @@
+{
+  "expo": {
+    "name": "Museum Guide",
+    "slug": "museum-guide",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0f0f1a"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.dreamteam.museumguide",
+      "infoPlist": {
+        "NSCameraUsageDescription": "We need camera access to recognize artifacts and tell their stories",
+        "NSSpeechRecognitionUsageDescription": "We use speech recognition to let you ask questions about artifacts"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0f0f1a"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.dreamteam.museumguide"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Museum Guide to use your camera to recognize artifacts"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "museum-guide"
+      }
+    }
+  }
+}
